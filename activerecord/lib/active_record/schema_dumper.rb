@@ -72,17 +72,18 @@ HEADER
         stream.puts "end"
       end
 
-      def extensions(stream)
-        return unless @connection.supports_extensions?
-        extensions = @connection.extensions
-        if extensions.any?
-          stream.puts "  # These are extensions that must be enabled in order to support this database"
-          extensions.each do |extension|
-            stream.puts "  enable_extension #{extension.inspect}"
-          end
-          stream.puts
-        end
-      end
+			def extensions(stream)
+				return unless @connection.supports_extensions?
+				extensions_and_schemas = @connection.extensions_and_schemas
+				
+				if extensions_and_schemas.any?
+					stream.puts "  # These are extensions that must be enabled in order to support this database"
+					extensions_and_schemas.each do |schema, extension|
+						stream.puts "  enable_extension_with_schema #{extension.inspect}, #{schema.inspect}"
+					end
+					stream.puts
+				end
+			end
 
       def tables(stream)
         sorted_tables = @connection.tables.sort

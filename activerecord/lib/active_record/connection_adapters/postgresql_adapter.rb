@@ -342,6 +342,12 @@ module ActiveRecord
         }
       end
 
+      def enable_extension_with_schema(name, schema)
+        exec_query("CREATE EXTENSION IF NOT EXISTS \"#{name}\" SCHEMA \"#{schema}\"").tap {
+          reload_type_map
+        }
+      end
+
       def disable_extension(name)
         exec_query("DROP EXTENSION IF EXISTS \"#{name}\" CASCADE").tap {
           reload_type_map
@@ -358,6 +364,14 @@ module ActiveRecord
       def extensions
         if supports_extensions?
           exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+        else
+          super
+        end
+      end
+
+      def extensions_and_schemas
+        if supports_extensions?
+          exec_query("SELECT  pg_namespace.nspname, pg_extension.extname FROM pg_extension , pg_namespace WHERE pg_extension.extnamespace = pg_namespace.oid;", "SCHEMA").cast_values
         else
           super
         end
